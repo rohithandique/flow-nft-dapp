@@ -102,7 +102,7 @@ function App() {
         </>
       : "" }
       <div>
-      { user.addr && images ? images : ""}
+      { user && user.addr && images ? images : ""}
       </div>
     </div>
   );
