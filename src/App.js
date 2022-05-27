@@ -3,7 +3,7 @@ import './App.css';
 import * as fcl from "@onflow/fcl";
 import * as types from "@onflow/types";
 
-import {mintNFT} from "./cadence/transactions/mintNFT_script"
+import {mintNFT} from "./cadence/transactions/mintNFT_tx"
 import {viewNFT} from "./cadence/scripts/viewNFT_script"
 import { getIDs } from "./cadence/scripts/getID_script"
 
@@ -15,7 +15,6 @@ fcl.config()
 function App() {
 
   const [ user, setUser ] = useState();
-  const [ imageSrc, setImageSrc ] = useState([])
   const [ images, setImages ] = useState([])
 
   const logIn = () => {
@@ -27,7 +26,6 @@ function App() {
   }
 
   const mint = async() => {
-
     const IDs = await fcl.send([
       fcl.script(getIDs),
       fcl.args([
@@ -47,23 +45,17 @@ function App() {
       fcl.limit(9999)
     ]).then(fcl.decode)
     console.log(transactionId)
-
   }
-
-  console.log(imageSrc)
-
   const view = async() => {
-
-    setImageSrc([])
+    setImages([]);
     const IDs = await fcl.send([
       fcl.script(getIDs),
       fcl.args([
         fcl.arg(user.addr, types.Address),
       ]),
     ]).then(fcl.decode);
-    
+    console.log(IDs)
     let _imageSrc = []
-
     for(let i=0; i<IDs.length; i++) {
       const result = await fcl.send([
         fcl.script(viewNFT),
@@ -74,15 +66,12 @@ function App() {
       ]).then(fcl.decode);
       _imageSrc.push(result[0])
     }
-    setImageSrc(_imageSrc)
-    
     if(images.length < _imageSrc.length) {
-      setImages(images.concat(Array.from({length: _imageSrc.length}, (_, i) => i).map((number, index)=>
+      setImages((Array.from({length: _imageSrc.length}, (_, i) => i).map((number, index)=>
         <img src={_imageSrc[index]} key={number} alt={"NFT #"+number}
         />
       )))
     }
-    
   }
 
   useEffect(() => {
@@ -94,25 +83,27 @@ function App() {
       <h1>Hello</h1>
       { user && user.addr ? <h3>{user.addr}</h3> : "" }
       { user && user.addr ? 
-        <button onClick={()=>logOut()}>
+        <button className="auth-button" onClick={()=>logOut()}>
         Log Out
         </button> 
         : 
-        <button onClick={()=>logIn()}>
+        <button className="auth-button" onClick={()=>logIn()}>
         Log In
         </button>
       }
       { user && user.addr ? 
         <>
-          <button onClick={()=>mint()}>
+          <button className="cta-button" onClick={()=>mint()}>
           Mint
           </button>
-          <button onClick={()=>view()}>
+          <button className="cta-button" onClick={()=>view()}>
           View
           </button>
         </>
       : "" }
-      {images ? images : ""}
+      <div>
+      { user.addr && images ? images : ""}
+      </div>
     </div>
   );
 }
