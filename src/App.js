@@ -26,13 +26,20 @@ function App() {
   }
 
   const mint = async() => {
-    const IDs = await fcl.send([
-      fcl.script(getIDs),
-      fcl.args([
-        fcl.arg(user.addr, types.Address),
-      ]),
-    ]).then(fcl.decode);
+    let IDs = []
+    try {
+      IDs = await fcl.send([
+        fcl.script(getIDs),
+        fcl.args([
+          fcl.arg(user.addr, types.Address),
+        ]),
+      ]).then(fcl.decode);
+    } catch(err) {
+
+    }
     const _id = IDs.length
+    console.log(_id)
+    
     const transactionId = await fcl.send([
       fcl.transaction(mintNFT),
       fcl.args([
@@ -48,12 +55,18 @@ function App() {
   }
   const view = async() => {
     setImages([]);
-    const IDs = await fcl.send([
-      fcl.script(getIDs),
-      fcl.args([
-        fcl.arg(user.addr, types.Address),
-      ]),
-    ]).then(fcl.decode);
+    let IDs = [];
+    try {
+      IDs = await fcl.send([
+        fcl.script(getIDs),
+        fcl.args([
+          fcl.arg(user.addr, types.Address),
+        ]),
+      ]).then(fcl.decode);
+    } catch(err) {
+
+    }
+    
     console.log(IDs)
     let _imageSrc = []
     for(let i=0; i<IDs.length; i++) {
