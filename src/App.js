@@ -1,12 +1,15 @@
+//importing required libraries
 import React, { useState, useEffect } from "react";
 import './App.css';
 import * as fcl from "@onflow/fcl";
 import * as types from "@onflow/types";
 
+//importing cadence scripts & transactions
 import {mintNFT} from "./cadence/transactions/mintNFT_tx"
 import {viewNFT} from "./cadence/scripts/viewNFT_script"
 import { getIDs } from "./cadence/scripts/getID_script"
 
+//required fcl configuration
 fcl.config()
   .put("flow.network", "testnet")
   .put("accessNode.api", "https://rest-testnet.onflow.org")
@@ -14,36 +17,29 @@ fcl.config()
 
 function App() {
 
+  //creating the state variables
   const [ user, setUser ] = useState();
   const [ images, setImages ] = useState([])
+  const [ network, setNetwork ] = useState();
 
+  //logging in and out functions
   const logIn = () => {
     fcl.authenticate();
   }
 
   const logOut = () => {
+    setImages([]); //clears all images stored in state when an user logs out
     fcl.unauthenticate();
   }
 
   const mint = async() => {
-    let IDs = []
-    try {
-      IDs = await fcl.send([
-        fcl.script(getIDs),
-        fcl.args([
-          fcl.arg(user.addr, types.Address),
-        ]),
-      ]).then(fcl.decode);
-    } catch(err) {
 
-    }
-    const _id = IDs.length
-    console.log(_id)
+    const _id = Math.floor(Math.random() * 10000);
     
     const transactionId = await fcl.send([
       fcl.transaction(mintNFT),
       fcl.args([
-        fcl.arg("https://cryptopunks.app/cryptopunks/cryptopunk3"+_id.toString()+".png", types.String),
+        fcl.arg("https://cryptopunks.app/cryptopunks/cryptopunk"+_id.toString()+".png", types.String),
         fcl.arg("Cryptopunk "+_id.toString(), types.String)
       ]),
       fcl.payer(fcl.currentUser),
@@ -53,6 +49,7 @@ function App() {
     ]).then(fcl.decode)
     console.log(transactionId)
   }
+
   const view = async() => {
     setImages([]);
     let IDs = [];
@@ -66,8 +63,7 @@ function App() {
     } catch(err) {
 
     }
-    
-    console.log(IDs)
+
     let _imageSrc = []
     for(let i=0; i<IDs.length; i++) {
       const result = await fcl.send([
@@ -90,11 +86,19 @@ function App() {
   useEffect(() => {
     fcl.currentUser().subscribe(setUser);
   }, [])
-  
+
+  useEffect(()=>{
+    window.addEventListener("message", d => {
+      if(d.data.type==='LILICO:NETWORK') setNetwork(d.data.network)
+    })
+  }, [])
+
   return (
     <div className="App">
+      {network === 'mainnet' ? alert("You're on Mainnet. Please change it to Testnet") : ""}
       <h1>Hello</h1>
       { user && user.addr ? <h3>{user.addr}</h3> : "" }
+      <div>
       { user && user.addr ? 
         <button className="auth-button" onClick={()=>logOut()}>
         Log Out
@@ -104,16 +108,22 @@ function App() {
         Log In
         </button>
       }
+      </div>
+      <div>
       { user && user.addr ? 
         <>
           <button className="cta-button" onClick={()=>mint()}>
-          Mint
-          </button>
-          <button className="cta-button" onClick={()=>view()}>
-          View
-          </button>
+            Mint
+            </button>
+          <div>
+            <button className="cta-button" onClick={()=>view()}>
+            View
+            </button>
+          </div>
+      
         </>
       : "" }
+      </div>
       <div>
       { user && user.addr && images ? images : ""}
       </div>
