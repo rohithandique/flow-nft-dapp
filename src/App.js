@@ -8,6 +8,7 @@ import * as types from "@onflow/types";
 import {mintNFT} from "./cadence/transactions/mintNFT_tx"
 import {viewNFT} from "./cadence/scripts/viewNFT_script"
 import { getIDs } from "./cadence/scripts/getID_script"
+import { getTotalSupply } from "./cadence/scripts/getTotalSupply_script"
 
 //required fcl configuration
 fcl.config()
@@ -51,30 +52,51 @@ function App() {
   }
 
   const view = async() => {
+
     setImages([]);
     let IDs = [];
-    try {
-      IDs = await fcl.send([
-        fcl.script(getIDs),
-        fcl.args([
-          fcl.arg(user.addr, types.Address),
-        ]),
-      ]).then(fcl.decode);
+    let _totalSupply;
+
+    try{
+      _totalSupply = await fcl.query({
+        cadence: `${getTotalSupply}`
+      })
     } catch(err) {
-
+      console.log(err)
     }
 
+    try {
+      IDs = await fcl.query({
+        cadence: `${getIDs}`,
+        args: (arg, t) => [
+          arg(user.addr, types.Address), 
+        ],
+      })
+    } catch(err) {
+      console.log(err)
+    }
+
+    console.log(_totalSupply)
+    console.log(IDs)
+    
     let _imageSrc = []
+    console.log(user.addr)
     for(let i=0; i<IDs.length; i++) {
-      const result = await fcl.send([
-        fcl.script(viewNFT),
-        fcl.args([
-          fcl.arg(user.addr, types.Address),
-          fcl.arg(IDs[i], types.UInt64),
-        ]),
-      ]).then(fcl.decode);
-      _imageSrc.push(result[0])
+      try{
+        console.log(IDs[i])
+        const result = await fcl.query({
+          cadence: `${viewNFT}`,
+          args: (arg, t) => [
+            arg(user.addr, types.Address), 
+            arg(IDs[i], types.UInt64),
+          ],
+        })
+        _imageSrc.push(result[0])
+      } catch(err) {
+        console.log(err)
+      }
     }
+
     if(images.length < _imageSrc.length) {
       setImages((Array.from({length: _imageSrc.length}, (_, i) => i).map((number, index)=>
         <img src={_imageSrc[index]} key={number} alt={"NFT #"+number}
@@ -84,10 +106,14 @@ function App() {
   }
 
   useEffect(() => {
+    //listens to changes in the user objects
+    //changes when the user logs in or logs out
     fcl.currentUser().subscribe(setUser);
   }, [])
 
   useEffect(()=>{
+    //adding an event listener to check for network changes
+    //only works for lilico - testnet to mainnet - changes
     window.addEventListener("message", d => {
       if(d.data.type==='LILICO:NETWORK') setNetwork(d.data.network)
     })

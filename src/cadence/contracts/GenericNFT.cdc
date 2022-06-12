@@ -54,11 +54,11 @@ pub contract GenericNFT: NonFungibleToken {
     }
 
     pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
-      return &self.ownedNFTs[id] as &NonFungibleToken.NFT
+      return (&self.ownedNFTs[id] as &NonFungibleToken.NFT?)!
     }
 
     pub fun borrowEntireNFT(id: UInt64): &NFT {
-      let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT;
+      let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT?;
       return ref as! &NFT;
     }
 
