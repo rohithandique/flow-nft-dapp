@@ -37,7 +37,7 @@ function App() {
 
     const _id = Math.floor(Math.random() * 10000);
     
-    const transactionId = await fcl.send([
+    /*const transactionId = await fcl.send([
       fcl.transaction(mintNFT),
       fcl.args([
         fcl.arg("https://cryptopunks.app/cryptopunks/cryptopunk"+_id.toString()+".png", types.String),
@@ -48,7 +48,22 @@ function App() {
       fcl.authorizations([fcl.currentUser]),
       fcl.limit(9999)
     ]).then(fcl.decode)
+    console.log(transactionId)*/
+
+    const transactionId = await fcl.mutate({
+      cadence: `${mintNFT}`,
+      args: (arg, t) => [
+        arg("https://cryptopunks.app/cryptopunks/cryptopunk"+_id.toString()+".png", types.String),
+        arg("Cryptopunk "+_id.toString(), types.String)
+      ],
+      proposer: fcl.currentUser,
+      payer: fcl.currentUser,
+      limit: 99
+    })
     console.log(transactionId)
+    const transaction = await fcl.tx(transactionId).onceSealed()
+    console.log(transaction)
+
   }
 
   const view = async() => {
@@ -80,22 +95,21 @@ function App() {
     console.log(IDs)
     
     let _imageSrc = []
-    console.log(user.addr)
-    for(let i=0; i<IDs.length; i++) {
-      try{
-        console.log(IDs[i])
-        const result = await fcl.query({
-          cadence: `${viewNFT}`,
-          args: (arg, t) => [
-            arg(user.addr, types.Address), 
-            arg(IDs[i], types.UInt64),
-          ],
-        })
-        _imageSrc.push(result[0])
-      } catch(err) {
-        console.log(err)
+    try{
+      for(let i=0; i<IDs.length; i++) {
+          const result = await fcl.query({
+            cadence: `${viewNFT}`,
+            args: (arg, t) => [
+              arg(user.addr, types.Address), 
+              arg(IDs[i], types.UInt64),
+            ],
+          })
+          _imageSrc.push(result[0])
       }
+    } catch(err) {
+      console.log(err)
     }
+    
 
     if(images.length < _imageSrc.length) {
       setImages((Array.from({length: _imageSrc.length}, (_, i) => i).map((number, index)=>
