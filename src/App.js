@@ -5,8 +5,9 @@ import * as fcl from "@onflow/fcl";
 import * as types from "@onflow/types";
 
 //importing cadence scripts & transactions
-import {mintNFT} from "./cadence/transactions/mintNFT_tx"
-import {viewNFT} from "./cadence/scripts/viewNFT_script"
+import { setupAccount } from "./cadence/transactions/setupAccount_tx"
+import { mintNFT } from "./cadence/transactions/mintNFT_tx"
+import { getMetadata } from "./cadence/scripts/getMetadata_script";
 import { getIDs } from "./cadence/scripts/getID_script"
 import { getTotalSupply } from "./cadence/scripts/getTotalSupply_script"
 
@@ -33,29 +34,10 @@ function App() {
     fcl.unauthenticate();
   }
 
-  const mint = async() => {
-
-    const _id = Math.floor(Math.random() * 10000);
-    
-    /*const transactionId = await fcl.send([
-      fcl.transaction(mintNFT),
-      fcl.args([
-        fcl.arg("https://cryptopunks.app/cryptopunks/cryptopunk"+_id.toString()+".png", types.String),
-        fcl.arg("Cryptopunk "+_id.toString(), types.String)
-      ]),
-      fcl.payer(fcl.currentUser),
-      fcl.proposer(fcl.currentUser),
-      fcl.authorizations([fcl.currentUser]),
-      fcl.limit(9999)
-    ]).then(fcl.decode)
-    console.log(transactionId)*/
+  const setup = async() => {
 
     const transactionId = await fcl.mutate({
-      cadence: `${mintNFT}`,
-      args: (arg, t) => [
-        arg("https://cryptopunks.app/cryptopunks/cryptopunk"+_id.toString()+".png", types.String),
-        arg("Cryptopunk "+_id.toString(), types.String)
-      ],
+      cadence: `${setupAccount}`,
       proposer: fcl.currentUser,
       payer: fcl.currentUser,
       limit: 99
@@ -64,6 +46,37 @@ function App() {
     const transaction = await fcl.tx(transactionId).onceSealed()
     console.log(transaction)
 
+  }
+
+  const mint = async() => {
+
+    let _totalSupply;
+
+    try{
+      _totalSupply = await fcl.query({
+        cadence: `${getTotalSupply}`
+      })
+    } catch(err) {
+      console.log(err)
+    }
+
+    const _id = _totalSupply + 1;
+  
+    const transactionId = await fcl.mutate({
+      cadence: `${mintNFT}`,
+      args: (arg, t) => [
+        arg(user.addr, types.Address), //address to which NFT should be minted
+        arg("Cryptopunk "+_id.toString(), types.String),
+        arg("CryptoPunk", types.String),
+        arg("https://cryptopunks.app/cryptopunks/cryptopunk"+_id+".png", types.String),
+      ],
+      proposer: fcl.currentUser,
+      payer: fcl.currentUser,
+      limit: 99
+    })
+    console.log(transactionId)
+    const transaction = await fcl.tx(transactionId).onceSealed()
+    console.log(transaction)
   }
 
   const view = async() => {
@@ -88,7 +101,7 @@ function App() {
         ],
       })
     } catch(err) {
-      console.log(err)
+      console.log("No NFTs Owned")
     }
 
     console.log(_totalSupply)
@@ -98,18 +111,19 @@ function App() {
     try{
       for(let i=0; i<IDs.length; i++) {
           const result = await fcl.query({
-            cadence: `${viewNFT}`,
+            cadence: `${getMetadata}`,
             args: (arg, t) => [
               arg(user.addr, types.Address), 
-              arg(IDs[i], types.UInt64),
+              arg(IDs[i].toString(), types.UInt64),
             ],
           })
-          _imageSrc.push(result[0])
+          _imageSrc.push(result["thumbnail"])
       }
     } catch(err) {
       console.log(err)
     }
     
+    console.log(_imageSrc)
 
     if(images.length < _imageSrc.length) {
       setImages((Array.from({length: _imageSrc.length}, (_, i) => i).map((number, index)=>
@@ -152,11 +166,16 @@ function App() {
       <div>
       { user && user.addr ? 
         <>
-          <button className="cta-button" onClick={()=>mint()}>
-            Mint
-            </button>
           <div>
-            <button className="cta-button" onClick={()=>view()}>
+            <button className="cta-button" onClick={setup}>
+              Setup Collection
+            </button>
+          </div>
+          <button className="cta-button" onClick={mint}>
+            Mint
+          </button>
+          <div>
+            <button className="cta-button" onClick={view}>
             View
             </button>
           </div>

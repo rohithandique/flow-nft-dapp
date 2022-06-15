@@ -1,7 +1,5 @@
-export const mintNFT = 
-`
 import NonFungibleToken from  0x631e88ae7f1d7c20;
-import ExampleNFT from 0xb25c3b0e6ed6d79a;
+import ExampleNFT from  0xb25c3b0e6ed6d79a;
 
 // This script uses the NFTMinter resource to mint a new NFT
 // It must be run with the account that has the minter resource
@@ -41,4 +39,3 @@ transaction(
         log("Minted an NFT")
     }
 }
-`
