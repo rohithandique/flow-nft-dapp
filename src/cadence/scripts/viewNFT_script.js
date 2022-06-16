@@ -1,5 +1,4 @@
-export const viewNFT =
-`
+export const viewNFT = `
 import GenericNFT from 0xb25c3b0e6ed6d79a
 
 pub fun main(account: Address, id: UInt64): [String] {
@@ -14,4 +13,4 @@ pub fun main(account: Address, id: UInt64): [String] {
   info.append(nftRef.name)
   return info
 }
-`
+`;
