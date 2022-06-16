@@ -153,7 +153,7 @@ function App() {
                         {images ? images : ""}
                     </div>
                 ) : (
-                    <button class="cta-button button-glow" onClick={() => logIn()}>
+                    <button className="cta-button button-glow" onClick={() => logIn()}>
                         Log In
                     </button>
                 )}
