@@ -5,7 +5,7 @@ import * as fcl from "@onflow/fcl";
 import * as types from "@onflow/types";
 
 //importing cadence scripts & transactions
-import { setupAccount } from "./cadence/transactions/setupAccount_tx"
+//import { setupAccount } from "./cadence/transactions/setupAccount_tx"
 import { mintNFT } from "./cadence/transactions/mintNFT_tx"
 import { getMetadata } from "./cadence/scripts/getMetadata_script";
 import { getIDs } from "./cadence/scripts/getID_script"
@@ -34,7 +34,7 @@ function App() {
     fcl.unauthenticate();
   }
 
-  const setup = async() => {
+  /*const setup = async() => {
 
     const transactionId = await fcl.mutate({
       cadence: `${setupAccount}`,
@@ -46,7 +46,7 @@ function App() {
     const transaction = await fcl.tx(transactionId).onceSealed()
     console.log(transaction)
 
-  }
+  }*/
 
   const mint = async() => {
 
@@ -60,8 +60,8 @@ function App() {
       console.log(err)
     }
 
-    const _id = _totalSupply + 1;
-  
+    const _id = parseInt(_totalSupply) + 1;
+
     const transactionId = await fcl.mutate({
       cadence: `${mintNFT}`,
       args: (arg, t) => [
@@ -75,8 +75,6 @@ function App() {
       limit: 99
     })
     console.log(transactionId)
-    const transaction = await fcl.tx(transactionId).onceSealed()
-    console.log(transaction)
   }
 
   const view = async() => {
@@ -166,11 +164,11 @@ function App() {
       <div>
       { user && user.addr ? 
         <>
-          <div>
+          {/*<div>
             <button className="cta-button" onClick={setup}>
               Setup Collection
             </button>
-          </div>
+          </div>*/}
           <button className="cta-button" onClick={mint}>
             Mint
           </button>

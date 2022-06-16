@@ -1,7 +1,7 @@
-import ExampleNFT from 0xb25c3b0e6ed6d79a;
+import BuildspaceNFT from 0xb25c3b0e6ed6d79a;
 
 pub fun main(): UInt64 {
 
-    return ExampleNFT.totalSupply;
+    return BuildspaceNFT.totalSupply;
 
 }
