@@ -139,7 +139,6 @@ function App() {
       <div>
         {user && user.addr ? (
           <div>
-            {network === "mainnet" ? alert("You're on Mainnet. Please change it to Testnet") : ""}
 
             <div className="button-container">
               <button className="cta-button" onClick={() => mint()}>
@@ -177,6 +176,7 @@ function App() {
 
   return (
     <div className="App">
+      {network === "mainnet" ? alert("You're on Mainnet. Please change it to Testnet") : ""}
       <RenderLogout />
 
       <div className="container">
