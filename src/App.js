@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import './App.css';
 import * as fcl from "@onflow/fcl";
 import * as types from "@onflow/types";
+import twitterLogo from "./assets/twitter-logo.svg";
 
 //importing cadence scripts & transactions
 //import { setupAccount } from "./cadence/transactions/setupAccount_tx"
@@ -11,11 +12,17 @@ import { getMetadata } from "./cadence/scripts/getMetadata_script";
 import { getIDs } from "./cadence/scripts/getID_script"
 import { getTotalSupply } from "./cadence/scripts/getTotalSupply_script"
 
+const TWITTER_HANDLE = "_buildspace";
+const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
+
 //required fcl configuration
-fcl.config()
-  .put("flow.network", "testnet")
-  .put("accessNode.api", "https://rest-testnet.onflow.org")
-  .put("discovery.wallet", "https://fcl-discovery.onflow.org/testnet/authn")
+fcl.config({
+  "flow.network": "testnet",
+  "app.detail.title": "Test App",
+  "accessNode.api": "https://rest-testnet.onflow.org",
+  "app.detail.icon": "https://placekitten.com/g/200/200",
+  "discovery.wallet": "https://fcl-discovery.onflow.org/testnet/authn",
+});
 
 function App() {
 
@@ -81,15 +88,6 @@ function App() {
 
     setImages([]);
     let IDs = [];
-    let _totalSupply;
-
-    try{
-      _totalSupply = await fcl.query({
-        cadence: `${getTotalSupply}`
-      })
-    } catch(err) {
-      console.log(err)
-    }
 
     try {
       IDs = await fcl.query({
@@ -102,7 +100,6 @@ function App() {
       console.log("No NFTs Owned")
     }
 
-    console.log(_totalSupply)
     console.log(IDs)
     
     let _imageSrc = []
@@ -125,7 +122,7 @@ function App() {
 
     if(images.length < _imageSrc.length) {
       setImages((Array.from({length: _imageSrc.length}, (_, i) => i).map((number, index)=>
-        <img src={_imageSrc[index]} key={number} alt={"NFT #"+number}
+        <img style={{margin:"10px", height: "150px"}} src={_imageSrc[index]} key={number} alt={"NFT #"+number}
         />
       )))
     }
@@ -145,44 +142,75 @@ function App() {
     })
   }, [])
 
+  const RenderGif = () => {
+    const gifUrl = user?.addr
+        ? "https://i.giphy.com/media/QhHpAbDuUp1mJTA6JI/giphy.webp"
+        : "https://i.giphy.com/media/Y2ZUWLrTy63j9T6qrK/giphy.webp";
+    return <img className="gif-image" src={gifUrl} height="150px"/>;
+  };
+
+  const RenderButton = () => {
+    return (
+      <div>
+        {user && user.addr ? (
+          <div>
+            {network === "mainnet" ? alert("You're on Mainnet. Please change it to Testnet") : ""}
+
+            <div className="button-container">
+              <button className="cta-button" onClick={() => mint()}>
+                Mint
+              </button>
+
+              <button className="cta-button" onClick={() => view()}>
+                View
+              </button>
+            </div>
+
+            {images ? images : ""}
+          </div>
+        ) : (
+          <button className="cta-button button-glow" onClick={() => logIn()}>
+            Log In
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  const RenderLogout = () => {
+    if (user && user.addr) {
+      return (
+        <div className="logout-container">
+          <button className="cta-button logout-btn" onClick={() => logOut()}>
+              {user.addr}
+          </button>
+        </div>
+      );
+    }
+    return undefined;
+  };
+
   return (
     <div className="App">
-      {network === 'mainnet' ? alert("You're on Mainnet. Please change it to Testnet") : ""}
-      <h1>Hello</h1>
-      { user && user.addr ? <h3>{user.addr}</h3> : "" }
-      <div>
-      { user && user.addr ? 
-        <button className="auth-button" onClick={()=>logOut()}>
-        Log Out
-        </button> 
-        : 
-        <button className="auth-button" onClick={()=>logIn()}>
-        Log In
-        </button>
-      }
-      </div>
-      <div>
-      { user && user.addr ? 
-        <>
-          {/*<div>
-            <button className="cta-button" onClick={setup}>
-              Setup Collection
-            </button>
-          </div>*/}
-          <button className="cta-button" onClick={mint}>
-            Mint
-          </button>
-          <div>
-            <button className="cta-button" onClick={view}>
-            View
-            </button>
+      <RenderLogout />
+
+      <div className="container">
+        <div className="header-container">
+          <div className="logo-container">
+            <img src="./logo.png" className="flow-logo" />
+            <p className="header">Flow</p>
           </div>
-      
-        </>
-      : "" }
-      </div>
-      <div>
-      { user && user.addr && images ? images : ""}
+
+          <RenderGif />
+          <p className="sub-text">Built for the next generation of apps and games</p>
+        </div>
+
+        <RenderButton />
+
+        <div className="footer-container">
+            <img alt="Twitter Logo" className="twitter-logo" src={twitterLogo} />
+            <a className="footer-text" href={TWITTER_LINK} target="_blank" rel="noreferrer">{`built on @${TWITTER_HANDLE}`}</a>
+        </div>
       </div>
     </div>
   );
