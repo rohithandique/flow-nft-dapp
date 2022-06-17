@@ -1,7 +1,7 @@
-import GenericNFT from 0xb25c3b0e6ed6d79a
+import BuildspaceNFT from 0xb25c3b0e6ed6d79a;
 
-pub fun main(): UInt64 {  
+pub fun main(): UInt64 {
 
-  return GenericNFT.totalSupply;
+    return BuildspaceNFT.totalSupply;
 
 }
